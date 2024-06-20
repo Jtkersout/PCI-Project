@@ -67,12 +67,12 @@ print(df.filter(pl.col("frame") == 10))
 
 def counting(df):
     Frames = df.get_column("frame").unique()
-    counterR = 0
-    counterF = 0
     population = dict()
     for _ in Frames:
         fdf = df.filter(pl.col("frame") == _)
         filtered_by_kind_and_frame_df = fdf.get_column("kind")
+        counterR = 0
+        counterF = 0
         for animal in filtered_by_kind_and_frame_df:
             if animal == "rabbit":
                 counterR +=1
