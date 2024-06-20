@@ -10,7 +10,7 @@ from vi.config import Config, dataclass, deserialize
 @deserialize
 @dataclass
 class PredatorPreyConfig(Config):
-    rabbit_reproduction_rate: float = 0.01
+    rabbit_reproduction_rate: float = 0.015
     fox_reproduction_rate: float = 1
     fox_death_rate: float = 0.01
     energy_gain_from_food: float = 50
@@ -36,17 +36,21 @@ class Fox(Agent):
 
     def on_spawn(self):
         self.energy = self.config.initial_energy
+        self.hunger = 0
 
     def update(self, delta_time=0.5):
-        self.energy -= 0.1
+        self.energy -= 0.01
+        self.hunger -= 0.01
         if self.energy <= 0:
             self.kill()
-        for rabbit in self.in_proximity_accuracy():
-            if isinstance(rabbit, Rabbit):
-                rabbit.kill()
-                self.energy += self.config.energy_gain_from_food
-                if random.random() < self.config.fox_reproduction_rate:
+        for rabbit in self.in_proximity_accuracy().without_distance():
+            if self.hunger < 0:
+                if isinstance(rabbit, Rabbit):
+                    rabbit.kill()
+                    self.energy += self.config.energy_gain_from_food
                     self.reproduce()
+                    self.hunger = 3
+                    break
         if random.random() < self.config.fox_death_rate:
             self.kill()
 
@@ -56,7 +60,7 @@ config = PredatorPreyConfig(
 simulation = Simulation(config)
 
 # Spawning initial agents
-simulation.batch_spawn_agents(15, Rabbit, images=["images/green.png"])
-simulation.batch_spawn_agents(15, Fox, images=["images/red.png"])
+simulation.batch_spawn_agents(100, Rabbit, images=[r"C:\Users\jahre\green.png"])
+simulation.batch_spawn_agents(5, Fox, images=[r"C:\Users\jahre\red.png"])
 
 simulation.run()
