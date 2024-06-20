@@ -26,7 +26,7 @@ class Rabbit(Agent):
         if random.random() < self.config.rabbit_reproduction_rate:
             self.reproduce()
         
-        self.save_data("prey","rabbit")
+        self.save_data("kind","rabbit")
 
 
 class Fox(Agent):
@@ -36,7 +36,7 @@ class Fox(Agent):
 
     def update(self, delta_time=0.5):
         self.timer += delta_time
-        self.save_data("pred", "fox")
+        self.save_data("kind", "fox")
         if self.timer > 15:
             for rabbit in self.in_proximity_accuracy().without_distance():
                     if isinstance(rabbit, Rabbit):
@@ -61,22 +61,29 @@ config = PredatorPreyConfig(
 #simulation.run()
 metrics
 
-df = Simulation(config).batch_spawn_agents(10, Rabbit, images=[r"C:\Users\jahre\green.png"]).batch_spawn_agents(2,Fox,images=[r"C:\Users\jahre\red.png"]).run().snapshots
-print(df.filter(pl.col("frame") == 60))
-fdf = df.filter(pl.col("frame") == 183)
+df = Simulation(config).batch_spawn_agents(13, Rabbit, images=[r"C:\Users\jahre\green.png"]).batch_spawn_agents(2,Fox,images=[r"C:\Users\jahre\red.png"]).run().snapshots
+print(df.filter(pl.col("frame") == 10))
+fdf = df.filter(pl.col("frame") == 10)
 filtered_by_kind_and_frame_df = fdf.get_column("kind")
 df.get_column("frame").unique()
 
 def counting(fdf):
+    Frames = df.get_column("frame").unique()
     counterR = 0
     counterF = 0
-    for animal in fdf:
-        if animal == "rabbit":
-            counterR +=1
-        else:
-            counterF +=1
-        
-    print(f"There are {counterR} so many rabits")
-    print(f"There are {counterF} so many foxes")
+    population = dict()
+    for _ in Frames:
+        fdf = df.filter(pl.col("frame") == _)
+        filtered_by_kind_and_frame_df = fdf.get_column("kind")
+        for animal in filtered_by_kind_and_frame_df:
+            if animal == "rabbit":
+                counterR +=1
+            else:
+                counterF +=1
+        population[_] = (counterR,counterF)
+    
+    return population
+            
+    
 
 counting(filtered_by_kind_and_frame_df)
