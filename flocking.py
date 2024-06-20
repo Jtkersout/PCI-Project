@@ -63,11 +63,9 @@ metrics
 
 df = Simulation(config).batch_spawn_agents(13, Rabbit, images=[r"C:\Users\jahre\green.png"]).batch_spawn_agents(2,Fox,images=[r"C:\Users\jahre\red.png"]).run().snapshots
 print(df.filter(pl.col("frame") == 10))
-fdf = df.filter(pl.col("frame") == 10)
-filtered_by_kind_and_frame_df = fdf.get_column("kind")
-df.get_column("frame").unique()
 
-def counting(fdf):
+
+def counting(df):
     Frames = df.get_column("frame").unique()
     counterR = 0
     counterF = 0
@@ -86,4 +84,4 @@ def counting(fdf):
             
     
 
-counting(filtered_by_kind_and_frame_df)
+counting(df)
