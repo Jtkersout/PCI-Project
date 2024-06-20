@@ -13,7 +13,7 @@ import polars as pl
 class PredatorPreyConfig(Config):
     rabbit_reproduction_rate: float = 0.001
     fox_reproduction_rate: float = 1
-    fox_death_rate: float = 0.1
+    fox_death_rate: float = 0.3
     energy_gain_from_food: float = 50
     initial_energy: float = 100
 
@@ -31,19 +31,19 @@ class Rabbit(Agent):
 
 class Fox(Agent):
     config: PredatorPreyConfig
-    timer = random.randint(0,10)
+    age = random.randint(0,10)
     
 
     def update(self, delta_time=0.5):
-        self.timer += delta_time
+        self.age += delta_time
         self.save_data("kind", "fox")
-        if self.timer > 15:
+        if self.age > 15:
             for rabbit in self.in_proximity_accuracy().without_distance():
                     if isinstance(rabbit, Rabbit):
                         rabbit.kill()
                         self.reproduce()
                         break
-        if self.timer > 100:
+        if self.age > 100:
             if random.random() < self.config.fox_death_rate:
                 self.kill()
             else:
@@ -62,6 +62,7 @@ config = PredatorPreyConfig(
 metrics
 
 df = Simulation(config).batch_spawn_agents(13, Rabbit, images=[r"C:\Users\jahre\green.png"]).batch_spawn_agents(2,Fox,images=[r"C:\Users\jahre\red.png"]).run().snapshots
+print(df)
 print(df.filter(pl.col("frame") == 10))
 
 
@@ -84,4 +85,15 @@ def counting(df):
             
     
 
-counting(df)
+population_data = counting(df)
+frames = sorted(population_data.keys())
+rabbits = [population_data[frame][0] for frame in frames]
+foxes = [population_data[frame][1] for frame in frames]
+
+plt.plot(frames, rabbits, label='Rabbit Population')
+plt.plot(frames, foxes, label='Fox Population')
+plt.xlabel('Frames')
+plt.ylabel('Population')
+plt.title('Rabbit and Fox Population Over Time')
+plt.legend()
+plt.show()
