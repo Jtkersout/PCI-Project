@@ -12,7 +12,7 @@ import polars as pl
 @dataclass
 class PredatorPreyConfig(Config):
     rabbit_reproduction_rate: float = 0.01
-    fox_reproduction_rate: float = 0.5
+    fox_reproduction_rate: float = 0.3
     fox_death_rate: float = 0.001
     deer_reproduction_rate: float = 0.005
     hawk_reproduction_rate: float = 0.3
@@ -183,11 +183,19 @@ class Fox(Agent):
     def on_spawn(self):
         self.energy = 1000
         self.age = random.randint(0, 10)
+        self.reproduction_timer = 1
 
     def update(self, delta_time=0.5):
         self.energy -= 0.1
         self.age += delta_time
         self.save_data("kind", "fox")
+
+        if self.reproduction_timer >= 1:
+            self.reproduction_timer += delta_time
+        
+        if self.reproduction_timer > 150:
+            self.reproduction_timer = 0
+
         if self.energy <= 25:
             self.kill()
             #print("i have dead because of lack of energy")
@@ -199,7 +207,7 @@ class Fox(Agent):
                     if self.pos.distance_to(rabbit.pos) < 40:
                         rabbit.kill()
                         self.energy += self.config.energy_gain_from_food
-                        if random.random() < self.config.fox_reproduction_rate:
+                        if random.random() < self.config.fox_reproduction_rate and self.reproduction_timer == 0:
                             self.reproduce()
                     break
 
@@ -242,11 +250,19 @@ class Hawk(Agent):
     def on_spawn(self):
         self.energy = self.config.initial_energy
         self.age = random.randint(0, 8)
+        self.reproduction_timer = 0
 
     def update(self, delta_time=0.5):
         self.energy -= 0.1
         self.age += delta_time
         self.save_data("kind", "hawk")
+
+        if self.reproduction_timer >= 1:
+            self.reproduction_timer += delta_time
+        
+        if self.reproduction_timer > 150:
+            self.reproduction_timer = 0
+
         if self.energy <= 25:
             self.kill()
         if self.age > 15:
@@ -255,7 +271,7 @@ class Hawk(Agent):
                     if self.pos.distance_to(prey.pos) < 35:
                         prey.kill()
                         self.energy += self.config.energy_gain_from_food
-                        if random.random() < self.config.hawk_reproduction_rate:
+                        if random.random() < self.config.hawk_reproduction_rate and self.reproduction_timer == 0:
                             self.reproduce()
                     break
 
@@ -268,7 +284,7 @@ class Hawk(Agent):
 
 #add duration for headless, remove duration for simulation and uncomment simulation for visual. 
 config = PredatorPreyConfig(
-    image_rotation=True, movement_speed=1, radius=50, seed=654, duration=60*50)
+    image_rotation=True, movement_speed=1, radius=50, seed=654, duration=60*75)
 
 x, y = config.window.as_tuple()
 
@@ -306,7 +322,6 @@ def counting(df):
 
 
 population_data = counting(df)
-print(population_data)
 
 frames = sorted(population_data.keys())
 
