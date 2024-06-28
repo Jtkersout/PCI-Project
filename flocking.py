@@ -15,8 +15,8 @@ class PredatorPreyConfig(Config):
     fox_reproduction_rate: float = 0.3
     fox_death_rate: float = 0.001
     deer_reproduction_rate: float = 0.005
-    hawk_reproduction_rate: float = 0.3
-    hawk_death_rate: float = 0.05
+    hawk_reproduction_rate: float = 0.2
+    hawk_death_rate: float = 0.1
     energy_gain_from_food: float = 50
     initial_energy: float = 1000
     grass_energy: float = 300  # Energy gained by eating grass
@@ -284,7 +284,7 @@ class Hawk(Agent):
 
 #add duration for headless, remove duration for simulation and uncomment simulation for visual. 
 config = PredatorPreyConfig(
-    image_rotation=True, movement_speed=1, radius=50, seed=654, duration=60*75)
+    image_rotation=True, movement_speed=1, radius=50, seed=654, duration=60*100)
 
 x, y = config.window.as_tuple()
 
