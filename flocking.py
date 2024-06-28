@@ -11,7 +11,7 @@ import polars as pl
 @deserialize
 @dataclass
 class PredatorPreyConfig(Config):
-    rabbit_reproduction_rate: float = 0.004
+    rabbit_reproduction_rate: float = 0.01
     fox_reproduction_rate: float = 0.5
     fox_death_rate: float = 0.001
     deer_reproduction_rate: float = 0.005
@@ -53,7 +53,7 @@ class RabbitM(Agent):
     def on_spawn(self):
         self.energy = self.config.initial_energy
         self.age = 0
-        self.reproduction_timer = 0
+        self.reproduction_timer = 1
 
     def update(self, delta_time=0.5):
         self.save_data("kind", "rabbitm")
@@ -62,14 +62,14 @@ class RabbitM(Agent):
         if self.reproduction_timer >= 1:
             self.reproduction_timer += delta_time
         
-        if self.reproduction_timer > 30:
+        if self.reproduction_timer > 150:
             self.reproduction_timer = 0
 
         
 
         if self.energy <= 0:
             self.kill()
-            print("i have dead because of lack of energy") #marker of energy death
+            #print("i have dead because of lack of energy") #marker of energy death
         for grass in self.in_proximity_performance():
             if isinstance(grass, Grass) and grass.is_grown:
                 grass.is_grown = False
@@ -120,7 +120,7 @@ class RabbitF(Agent):
     def on_spawn(self):
         self.energy = self.config.initial_energy
         self.age =0
-        self.reproduction_timer = 0
+        self.reproduction_timer = 1
 
     def update(self, delta_time=0.5):
         self.save_data("kind", "rabbitF")
@@ -130,12 +130,12 @@ class RabbitF(Agent):
         if self.reproduction_timer >= 1:
             self.reproduction_timer += delta_time
         
-        if self.reproduction_timer > 30:
+        if self.reproduction_timer > 150:
             self.reproduction_timer = 0
 
         if self.energy <= 0:
             self.kill()
-            print("i have dead because of lack of energy") #gives us an idea of whats happening
+            #print("i have dead because of lack of energy") #gives us an idea of whats happening
         for grass in self.in_proximity_performance():
             if isinstance(grass, Grass) and grass.is_grown:
                 grass.is_grown = False
@@ -190,12 +190,12 @@ class Fox(Agent):
         self.save_data("kind", "fox")
         if self.energy <= 25:
             self.kill()
-            print("i have dead because of lack of energy")
+            #print("i have dead because of lack of energy")
         if self.age > 15:
            for rabbit in self.in_proximity_performance():
                 if isinstance(rabbit, RabbitF) or isinstance(rabbit, RabbitM):
-                    if rabbit.age > 300:
-                        print("i am to old to run away")
+                    #if rabbit.age > 300:
+                        #print("i am to old to run away")
                     if self.pos.distance_to(rabbit.pos) < 40:
                         rabbit.kill()
                         self.energy += self.config.energy_gain_from_food
@@ -224,7 +224,7 @@ class Fox(Agent):
                 obstacles.append(hawk.pos) #position of the hawks get put into the obstacles.
     
 
-        if len(obstacles) > 0 and self.age < 600: #if there are hawks as obstacles and if they are young they will avoid the hawk
+        if len(obstacles) > 0 and self.age < 666: #if there are hawks as obstacles and if they are young they will avoid the hawk
             closest_obstacle = min(obstacles, key=lambda obstacle: self.pos.distance_to(obstacle))
         
 
@@ -252,7 +252,7 @@ class Hawk(Agent):
         if self.age > 15:
             for prey in self.in_proximity_performance():
                 if isinstance(prey, RabbitF) or isinstance(prey, Fox) or isinstance(prey, RabbitM):
-                    if self.pos.distance_to(prey.pos) < 40:
+                    if self.pos.distance_to(prey.pos) < 35:
                         prey.kill()
                         self.energy += self.config.energy_gain_from_food
                         if random.random() < self.config.hawk_reproduction_rate:
@@ -266,14 +266,16 @@ class Hawk(Agent):
 
 
 
-
+#add duration for headless, remove duration for simulation and uncomment simulation for visual. 
 config = PredatorPreyConfig(
-    image_rotation=True, movement_speed=1, radius=50, seed=654,duration=60*100)
+    image_rotation=True, movement_speed=1, radius=50, seed=654, duration=60*50)
 
 x, y = config.window.as_tuple()
 
+#df = Simulation(config).batch_spawn_agents(15, RabbitF, images=[r"C:\Users\jahre\white.png"]).batch_spawn_agents(15, RabbitM, images=[r"C:\Users\jahre\white.png"]).batch_spawn_agents(4, Fox, images=[r"C:\Users\jahre\red.png"]).batch_spawn_agents(10, Grass, images=[r"C:\Users\jahre\green.png"]).batch_spawn_agents(2, Hawk, images=[r"C:\Users\jahre\bird.jpeg"]).run().snapshots
+
 df = HeadlessSimulation(config).batch_spawn_agents(15, RabbitF, images=[r"C:\Users\jahre\white.png"]).batch_spawn_agents(15, RabbitM, images=[r"C:\Users\jahre\white.png"]).batch_spawn_agents(4, Fox, images=[r"C:\Users\jahre\red.png"]).batch_spawn_agents(10, Grass, images=[r"C:\Users\jahre\green.png"]).batch_spawn_agents(2, Hawk, images=[r"C:\Users\jahre\bird.jpeg"]).run().snapshots
-print(df.filter(pl.col("frame") == 10))
+
 
 # .spawn_site(r"/Users/anastasiaaliani/Desktop/UNI/SEM 2/Project Collective Intelligence/Assignment_0 2/images/triangle@200px.png", 150, y // 2).spawn_site(r"/Users/anastasiaaliani/Desktop/UNI/SEM 2/Project Collective Intelligence/Assignment_0 2/images/triangle@50px.png", 550, y // 2)
 
@@ -307,7 +309,7 @@ population_data = counting(df)
 print(population_data)
 
 frames = sorted(population_data.keys())
-print(frames)
+
 rabbitsm = [population_data[frame][0] for frame in frames]
 rabbitsf = [population_data[frame][1] for frame in frames]
 hawk = [population_data[frame][2] for frame in frames]
